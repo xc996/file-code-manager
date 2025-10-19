@@ -397,12 +397,50 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .file-actions .btn {
-            padding: 6px 12px;
+            padding: 8px 15px;
             font-size: 12px;
-            min-height: 32px;
+            min-height: 36px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .file-actions input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            appearance: none;
+            position: relative;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .file-actions input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            border-color: #ff6b9d;
+            box-shadow: 0 0 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .file-actions input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .file-actions input[type="checkbox"]:hover {
+            border-color: #ff6b9d;
+            box-shadow: 0 0 10px rgba(255, 107, 157, 0.3);
         }
 
         .watched-badge {
@@ -500,16 +538,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
-            padding: 15px;
-            background: #2d2d2d;
-            border-radius: 8px;
-            border: 1px solid #404040;
+            margin-top: 30px;
+            padding: 20px 25px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .pagination:hover {
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 107, 157, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .pagination-info {
-            color: #aaa;
-            font-size: 14px;
+            color: #f0f0f0;
+            font-size: 15px;
+            font-weight: 500;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #f8b500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.3);
         }
 
         .pagination-controls {
@@ -520,40 +576,50 @@
 
         .page-numbers {
             display: flex;
-            gap: 5px;
+            gap: 8px;
         }
 
         .page-number {
-            padding: 8px 12px;
-            border: 1px solid #555;
-            border-radius: 4px;
+            padding: 10px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
             cursor: pointer;
-            background: #3a3a3a;
-            color: #e0e0e0;
+            background: rgba(255, 255, 255, 0.08);
+            color: #f0f0f0;
             font-size: 14px;
-            min-width: 40px;
+            font-weight: 600;
+            min-width: 45px;
             text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
 
         .page-number:hover {
-            background: #4CAF50;
-            border-color: #4CAF50;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            border-color: #ff6b9d;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
         }
 
         .page-number.active {
-            background: #4CAF50;
-            border-color: #4CAF50;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 50%, #f8b500 100%);
+            border-color: #ff6b9d;
             color: white;
+            box-shadow: 
+                0 8px 25px rgba(255, 107, 157, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .page-number.ellipsis {
             border: none;
             background: transparent;
             cursor: default;
+            color: rgba(240, 240, 240, 0.6);
         }
 
         .page-number.ellipsis:hover {
             background: transparent;
+            transform: none;
         }
 
         .filter-controls {
@@ -1144,14 +1210,14 @@
                 <div class="file-item ${selectedItems.has(item.id) ? 'selected' : ''}" data-id="${item.id}">
                     <div class="file-content">${escapeHtml(item.code)}</div>
                     <div class="file-actions">
-                        <span class="watched-badge ${item.watched ? 'watched' : 'unwatched'}">
-                            ${item.watched ? '✓ 已观看' : '✕ 未观看'}
-                        </span>
                         ${selectMode ? `
                             <input type="checkbox" ${selectedItems.has(item.id) ? 'checked' : ''} 
                                    onchange="toggleSelection(${item.id})">
                         ` : ''}
-                        <button class="btn btn-secondary" onclick="copyCode('${escapeHtml(item.code)}')">复制</button>
+                        <span class="watched-badge ${item.watched ? 'watched' : 'unwatched'}">
+                            ${item.watched ? '✓ 已观看' : '✕ 未观看'}
+                        </span>
+                        <button class="btn btn-primary" onclick="copyCode('${escapeHtml(item.code)}')">📋 复制</button>
                         <button class="btn btn-warning" onclick="toggleWatched(${item.id})">
                             ${item.watched ? '标记未看' : '标记已看'}
                         </button>
