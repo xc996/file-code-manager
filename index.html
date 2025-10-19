@@ -939,7 +939,12 @@
                     document.getElementById('mainScreen').style.display = 'block';
                     loadData();
                 } else {
-                    showNotification('密码错误', 'error');
+                    // 检查是否是防爆破限制
+                    if (response.status === 429) {
+                        showNotification('登录尝试过于频繁，请5分钟后再试', 'error');
+                    } else {
+                        showNotification(result.error || '密码错误', 'error');
+                    }
                 }
             } catch (error) {
                 showNotification('登录失败: ' + error.message, 'error');

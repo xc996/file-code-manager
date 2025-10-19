@@ -111,6 +111,21 @@ export async function onRequest(context) {
 // 处理认证
 async function handleAuth(request, env) {
     try {
+        // 获取客户端 IP
+        const clientIP = request.headers.get('CF-Connecting-IP') || 
+                        request.headers.get('X-Forwarded-For') || 
+                        'unknown';
+        
+        // 防爆破检查 - 更严格的限制
+        const authRateLimit = checkRateLimit(`auth_${clientIP}`, 5, 300000); // 5次/5分钟
+        if (!authRateLimit.allowed) {
+            console.warn(`Auth rate limit exceeded for IP: ${clientIP}`);
+            return jsonResponse({ 
+                success: false, 
+                error: '登录尝试过于频繁，请5分钟后再试' 
+            }, 429);
+        }
+        
         const body = await request.json();
         const { password } = body;
         
@@ -131,6 +146,9 @@ async function handleAuth(request, env) {
         const expectedHash = correctPasswordHash || '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
         
         if (password === expectedHash) {
+            // 登录成功，清除失败计数
+            rateLimits.delete(`auth_${clientIP}`);
+            
             // 生成 session
             const sessionId = generateSessionId();
             sessions.set(sessionId, {
@@ -143,12 +161,16 @@ async function handleAuth(request, env) {
                 session: sessionId 
             });
         } else {
+            // 登录失败，记录失败尝试
+            console.warn(`Failed login attempt from IP: ${clientIP}`);
+            
             return jsonResponse({ 
                 success: false, 
                 error: '密码错误' 
             }, 401);
         }
     } catch (error) {
+        console.error('Auth error:', error);
         return jsonResponse({ error: '认证失败: ' + error.message }, 400);
     }
 }
