@@ -11,7 +11,7 @@ pages_build_output_dir = "./"
 # 然后在 Pages 项目设置中绑定该命名空间
 [[kv_namespaces]]
 binding = "FILE_CODES_KV"
-id = "your-kv-namespace-id-here"  # 生产环境 ID（部署时再设置）
+id = "8a83c8ee55b843f8a4bf599c1140d3be"  # 生产环境 KV 命名空间 ID
 preview_id = "9800501f5ae74df8a2d5ea41bf69ea76"  # 本地开发用
 
 # 环境变量（用于开发）
@@ -19,9 +19,9 @@ preview_id = "9800501f5ae74df8a2d5ea41bf69ea76"  # 本地开发用
 # PASSWORD_HASH 应该在 Cloudflare Pages 设置中配置，而不是在这里
 # 这里只是示例，生产环境请使用 Dashboard 设置
 
-# 开发环境配置
-[env.development]
-[[env.development.kv_namespaces]]
+# 预览环境配置
+[env.preview]
+[[env.preview.kv_namespaces]]
 binding = "FILE_CODES_KV"
-id = "your-dev-kv-namespace-id"  # 开发环境的 KV 命名空间 ID
+id = "9800501f5ae74df8a2d5ea41bf69ea76"  # 预览环境的 KV 命名空间 ID
 
