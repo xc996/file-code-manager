@@ -850,7 +850,8 @@
             
             if (newCount > 0) {
                 saveData();
-                renderList();
+                filterList(); // 使用 filterList 而不是 renderList，确保过滤状态正确
+                updateStats();
                 showNotification(`成功添加 ${newCount} 个文件码`, 'success');
                 document.getElementById('inputText').value = '';
             } else {
@@ -867,8 +868,8 @@
                 return;
             }
 
-            // 不管输入多少内容，都整理成一个文件码
-            const fullContent = input.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+            // 保持原始内容，不转换换行
+            const fullContent = input;
             
             // 检查是否已存在
             if (fileData.some(item => item.code === fullContent)) {
@@ -886,7 +887,7 @@
 
             fileData.unshift(newItem);
             saveData();
-            renderList();
+            filterList(); // 使用 filterList 而不是 renderList，确保过滤状态正确
             updateStats();
             showNotification('文件码添加成功', 'success');
             document.getElementById('manualCode').value = '';
@@ -1044,7 +1045,7 @@
             if (item) {
                 item.watched = !item.watched;
                 saveData();
-                renderList();
+                filterList(); // 使用 filterList 确保过滤状态正确
                 updateStats();
             }
         }
@@ -1055,7 +1056,7 @@
                 fileData = fileData.filter(item => item.id !== id);
                 selectedItems.delete(id);
                 saveData();
-                renderList();
+                filterList(); // 使用 filterList 确保过滤状态正确
                 updateStats();
                 showNotification('删除成功', 'success');
             }
@@ -1102,7 +1103,7 @@
             });
 
             saveData();
-            renderList();
+            filterList(); // 使用 filterList 确保过滤状态正确
             updateStats();
             showNotification(`已标记 ${selectedItems.size} 个项目为${watched ? '已观看' : '未观看'}`, 'success');
         }
@@ -1118,7 +1119,7 @@
                 fileData = fileData.filter(item => !selectedItems.has(item.id));
                 selectedItems.clear();
                 saveData();
-                renderList();
+                filterList(); // 使用 filterList 确保过滤状态正确
                 updateStats();
                 showNotification('批量删除成功', 'success');
             }
