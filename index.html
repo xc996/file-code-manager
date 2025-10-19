@@ -207,6 +207,7 @@
             transition: all 0.3s ease;
             will-change: transform;
             backdrop-filter: blur(10px);
+            min-height: auto;
         }
 
         .file-item:hover {
@@ -225,10 +226,15 @@
         .file-content {
             font-family: 'Courier New', monospace;
             font-size: 14px;
-            color: #e0e0e0;
-            word-break: break-all;
-            margin-bottom: 10px;
-            line-height: 1.4;
+            color: #e8e8e8;
+            word-break: break-word;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .file-actions {
