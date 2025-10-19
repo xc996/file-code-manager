@@ -76,7 +76,7 @@ wrangler kv:namespace create FILE_CODES_KV
 # 记下返回的 ID，更新 wrangler.toml 中的 id 字段
 
 # 4. 部署到 Pages
-wrangler pages deploy ./ --project-name=file-codes-manager
+wrangler pages deploy ./ --project-name=file-code-manager
 
 # 5. 配置环境变量（通过 Dashboard）
 # 进入 Pages 项目设置添加 PASSWORD_HASH
@@ -114,7 +114,7 @@ print(hash_value)
 ## 📁 项目结构
 
 ```
-file-codes-manager/
+file-code-manager/
 ├── index.html              # 前端单页应用
 ├── functions/              # Cloudflare Functions
 │   └── api/
@@ -129,7 +129,7 @@ file-codes-manager/
 ### wrangler.toml
 
 ```toml
-name = "file-codes-manager"
+name = "file-code-manager"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "./"
 
@@ -197,7 +197,7 @@ id = "your-kv-namespace-id-here"  # 替换为你的 KV ID
 ```bash
 # 1. 克隆项目
 git clone <your-repo-url>
-cd file-codes-manager
+cd file-code-manager
 
 # 2. 安装 Wrangler（如果还没有）
 npm install -g wrangler

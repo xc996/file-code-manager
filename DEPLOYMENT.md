@@ -2,6 +2,61 @@
 
 本文档提供详细的 Cloudflare Pages 部署步骤和配置说明。
 
+## ⚡ 快速部署（已验证）
+
+以下是实际部署成功的命令序列，可以直接复制使用：
+
+### 1. 登录 Cloudflare
+```bash
+wrangler login
+```
+
+### 2. 创建 KV 命名空间
+```bash
+wrangler kv namespace create FILE_CODES_KV
+# 记下返回的 ID，例如：8a83c8ee55b843f8a4bf599c1140d3be
+```
+
+### 3. 更新 wrangler.toml
+将 KV 命名空间 ID 更新到 `wrangler.toml` 文件中：
+```toml
+[[kv_namespaces]]
+binding = "FILE_CODES_KV"
+id = "8a83c8ee55b843f8a4bf599c1140d3be"  # 替换为你的实际 ID
+```
+
+### 4. 创建 Pages 项目
+```bash
+wrangler pages project create file-code-manager --production-branch=master
+```
+
+### 5. 部署代码
+```bash
+wrangler pages deploy ./ --project-name=file-code-manager
+```
+
+### 6. 设置密码
+```bash
+# 生成密码哈希（默认密码 admin123）
+node -e "const crypto = require('crypto'); const password = 'admin123'; const hash = crypto.createHash('sha256').update(password).digest('hex'); console.log('Password:', password); console.log('Hash:', hash);"
+
+# 设置环境变量
+wrangler pages secret put PASSWORD_HASH --project-name=file-code-manager
+# 输入哈希值：240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
+```
+
+### 7. 重新部署
+```bash
+wrangler pages deploy ./ --project-name=file-code-manager
+```
+
+### 8. 访问网站
+打开 https://file-code-manager.pages.dev，使用密码 `admin123` 登录。
+
+**注意：** 请立即修改默认密码！
+
+---
+
 ## 📋 部署前准备
 
 ### 1. 创建 Cloudflare 账号
@@ -65,7 +120,7 @@ git add .
 git commit -m "Initial commit"
 
 # 添加远程仓库（替换为你的仓库地址）
-git remote add origin https://github.com/yourusername/file-codes-manager.git
+git remote add origin https://github.com/yourusername/file-code-manager.git
 
 # 推送到 GitHub
 git push -u origin main
@@ -89,7 +144,7 @@ git push -u origin main
 4. 点击 **Connect to Git**
 5. 授权并选择你的 GitHub 仓库
 6. 配置构建设置：
-   - **Project name**: `file-codes-manager`（或自定义）
+   - **Project name**: `file-code-manager`（或自定义）
    - **Production branch**: `main`
    - **Build command**: 留空
    - **Build output directory**: `/`
@@ -141,7 +196,7 @@ git push -u origin main
 2. 点击 **Create application**
 3. 选择 **Pages** 标签
 4. 点击 **Upload assets**
-5. 输入项目名称：`file-codes-manager`
+5. 输入项目名称：`file-code-manager`
 6. 将项目文件夹拖放到上传区域（或选择文件）
 7. 点击 **Deploy site**
 
@@ -180,7 +235,7 @@ wrangler kv:namespace create FILE_CODES_KV --preview
 
 命令会输出类似以下内容：
 ```
-🌀 Creating namespace with title "file-codes-manager-FILE_CODES_KV"
+🌀 Creating namespace with title "file-code-manager-FILE_CODES_KV"
 ✨ Success!
 Add the following to your configuration file in your kv_namespaces array:
 { binding = "FILE_CODES_KV", id = "abc123def456" }
@@ -199,7 +254,7 @@ id = "abc123def456"  # 替换为你的实际 ID
 ### 步骤 5：部署
 
 ```bash
-wrangler pages deploy ./ --project-name=file-codes-manager
+wrangler pages deploy ./ --project-name=file-code-manager
 ```
 
 首次部署会询问是否创建新项目，选择 Yes。
@@ -208,7 +263,7 @@ wrangler pages deploy ./ --project-name=file-codes-manager
 
 ```bash
 # 设置密码哈希
-wrangler pages secret put PASSWORD_HASH --project-name=file-codes-manager
+wrangler pages secret put PASSWORD_HASH --project-name=file-code-manager
 # 粘贴你的密码哈希值，按回车
 ```
 
@@ -222,7 +277,7 @@ wrangler pages secret put PASSWORD_HASH --project-name=file-codes-manager
 
 ### 1. 检查 KV 绑定
 ```bash
-wrangler pages deployment list --project-name=file-codes-manager
+wrangler pages deployment list --project-name=file-code-manager
 ```
 
 ### 2. 查看环境变量
@@ -296,16 +351,55 @@ git push
 
 ### 更新代码（Wrangler 方式）
 ```bash
-wrangler pages deploy ./ --project-name=file-codes-manager
+wrangler pages deploy ./ --project-name=file-code-manager
 ```
 
 ### 备份数据
 定期使用应用的"导出数据"功能导出 JSON 备份。
 
-### 更改密码
-1. 生成新密码的哈希
-2. 在 Dashboard 更新 PASSWORD_HASH 环境变量
-3. 重新部署（或等待自动生效）
+### 🔐 更改密码
+
+**重要：** 部署后请立即修改默认密码！
+
+#### 方法 1：使用 Wrangler CLI（推荐）
+
+1. **生成新密码的哈希值**
+   ```bash
+   # 使用 Node.js 生成哈希
+   node -e "const crypto = require('crypto'); const password = 'your-new-password'; const hash = crypto.createHash('sha256').update(password).digest('hex'); console.log('新密码:', password); console.log('哈希值:', hash);"
+   ```
+
+2. **更新环境变量**
+   ```bash
+   wrangler pages secret put PASSWORD_HASH --project-name=file-code-manager
+   # 粘贴新的哈希值，按回车确认
+   ```
+
+3. **重新部署**
+   ```bash
+   wrangler pages deploy ./ --project-name=file-code-manager
+   ```
+
+#### 方法 2：使用 Cloudflare Dashboard
+
+1. **生成新密码哈希**（使用上述方法）
+2. **登录 Cloudflare Dashboard**
+3. **进入 Pages 项目** → Settings → Environment variables
+4. **编辑 PASSWORD_HASH** 变量
+5. **保存更改**（会自动重新部署）
+
+#### 验证密码更新
+
+1. 访问你的网站
+2. 尝试使用旧密码登录（应该失败）
+3. 使用新密码登录（应该成功）
+
+#### 密码安全建议
+
+- 使用至少 12 位字符
+- 包含大小写字母、数字和特殊字符
+- 定期更换密码
+- 不要在多个服务中使用相同密码
 
 ## 🌐 自定义域名（可选）
 
