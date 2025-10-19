@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#1e1e2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>文件码管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased; /* 优化字体渲染 */
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 登录界面 */
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: #2a2a3e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-card h1 {
+            color: #60a5fa;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="password"], input[type="text"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1e1e2e;
+            border: 2px solid #3a3a4e;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px; /* iOS触摸目标最小尺寸 */
+            touch-action: manipulation; /* 优化触摸响应 */
+            user-select: none; /* 防止文字选择 */
+        }
+
+        .btn-primary {
+            background: #60a5fa;
+            color: #1e1e2e;
+        }
+
+        .btn-primary:hover {
+            background: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+        }
+
+        .btn-secondary {
+            background: #4a4a5e;
+            color: #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #5a5a6e;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* 主界面 */
+        #mainScreen {
+            display: none;
+        }
+
+        header {
+            background: #2a2a3e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            color: #60a5fa;
+            font-size: 24px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: #2a2a3e;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #60a5fa;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            padding-right: 40px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #60a5fa;
+        }
+
+        /* 文件码列表 */
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto; /* 优化滚动 */
+            -webkit-overflow-scrolling: touch; /* iOS流畅滚动 */
+        }
+
+        .file-item {
+            background: #1e1e2e;
+            padding: 16px;
+            border-radius: 8px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            will-change: transform; /* 性能优化 */
+        }
+
+        .file-item:hover {
+            border-color: #60a5fa;
+            transform: translateX(4px);
+        }
+
+        .file-item:active {
+            background: #2a2a3e; /* 触摸反馈 */
+        }
+
+        .file-item.editing {
+            border-color: #10b981;
+        }
+
+        .file-code {
+            font-family: 'Courier New', monospace;
+            color: #60a5fa;
+            font-weight: 600;
+            word-break: break-all;
+            flex: 0 0 200px;
+            overflow-wrap: break-word; /* 更好的换行 */
+            hyphens: auto; /* 自动断词 */
+        }
+
+        .file-note {
+            flex: 1;
+            color: #9ca3af;
+        }
+
+        .file-note input {
+            margin: 0;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* 通知 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #ef4444;
+        }
+
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: #60a5fa;
+            color: #1e1e2e;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #3b82f6;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
+        }
+
+        .back-to-top:active {
+            transform: translateY(-2px);
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a4e;
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #2a2a3e;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h3 {
+            color: #60a5fa;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* 批量操作 */
+        .batch-actions {
+            background: #1e1e2e;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .batch-actions.show {
+            display: flex;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            min-width: 20px; /* 确保复选框大小 */
+            min-height: 20px;
+        }
+
+        /* 禁用按钮样式 */
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            /* 统计卡片优化 */
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px;
+                min-width: calc(50% - 5px);
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            /* 卡片间距 */
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            /* 搜索框 */
+            .search-box input {
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+
+            /* 过滤器在手机上垂直排列 */
+            .filter-select {
+                width: 100%;
+                font-size: 16px; /* 防止iOS缩放 */
+            }
+
+            /* 文件列表项 */
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .file-code {
+                flex: 1 1 100%;
+                font-size: 13px;
+                word-break: break-all;
+                line-height: 1.4;
+            }
+
+            .file-note {
+                width: 100%;
+                font-size: 14px;
+            }
+
+            .file-note input {
+                width: 100%;
+            }
+
+            /* 观看状态徽章 */
+            .watched-badge {
+                display: block;
+                margin-left: 0;
+                margin-top: 6px;
+                width: fit-content;
+            }
+
+            /* 按钮组 */
+            .file-actions {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .file-actions .btn {
+                flex: 1 1 auto;
+                min-width: 70px;
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+
+            /* 批量操作栏 */
+            .batch-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .batch-actions .btn {
+                width: 100%;
+            }
+
+            /* 头部 */
+            header {
+                text-align: center;
+                padding: 16px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* 分页器 */
+            .pagination {
+                font-size: 14px;
+            }
+
+            .page-number {
+                min-width: 32px;
+                height: 32px;
+                font-size: 13px;
+            }
+
+            /* 登录卡片 */
+            .login-card {
+                padding: 30px 20px;
+            }
+
+            .login-card h1 {
+                font-size: 24px;
+            }
+
+            /* 模态框 */
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            /* 通知 */
+            .notification {
+                right: 10px;
+                left: 10px;
+                top: 10px;
+            }
+
+            /* 返回顶部按钮 */
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+
+            /* 输入框和文本域 */
+            input, textarea, select {
+                font-size: 16px !important; /* 防止iOS自动缩放 */
+            }
+
+            /* 按钮组优化 */
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group .btn {
+                width: 100%;
+            }
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+            border-left: 4px solid #60a5fa;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        /* 过滤选择器 */
+        .filter-select {
+            padding: 8px 12px;
+            background: #1e1e2e;
+            border: 2px solid #3a3a4e;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .filter-select:hover {
+            border-color: #60a5fa;
+        }
+
+        /* 观看状态标记 */
+        .watched-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .watched-badge.watched {
+            background: #10b981;
+            color: white;
+        }
+
+        .watched-badge.unwatched {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* 分页器 */
+        .pagination {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid #3a3a4e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .pagination-info {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .pagination-info span {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-number {
+            min-width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #1e1e2e;
+            border: 2px solid #3a3a4e;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .page-number:hover {
+            border-color: #60a5fa;
+            background: #2a2a3e;
+        }
+
+        .page-number.active {
+            background: #60a5fa;
+            border-color: #60a5fa;
+            color: #1e1e2e;
+            font-weight: 700;
+        }
+
+        .page-number.ellipsis {
+            cursor: default;
+            border: none;
+            background: transparent;
+        }
+
+        .page-number.ellipsis:hover {
+            border: none;
+            background: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .pagination {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .pagination-info {
+                text-align: center;
+            }
+
+            .pagination-controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <h1>🔐 文件码管理系统</h1>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder="请输入密码" />
+            </div>
+            <button class="btn btn-primary" onclick="login()">登录</button>
+        </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div id="mainScreen" class="container">
+        <header>
+            <h1>📁 文件码管理系统</h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary btn-small" onclick="exportData()">导出数据</button>
+                <button class="btn btn-secondary btn-small" onclick="logout()">退出登录</button>
+            </div>
+        </header>
+
+        <!-- 统计信息 -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">总文件码数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="filteredCount">0</div>
+                <div class="stat-label">当前显示</div>
+            </div>
+        </div>
+
+        <!-- 文本解析卡片 -->
+        <div class="card">
+            <h2>📝 粘贴文本进行解析</h2>
+            <textarea id="inputText" placeholder="粘贴包含文件码的文本，支持格式：&#10;@filepan_bot:xxx 备注信息&#10;showfilesbot_xxx 标签"></textarea>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="parseText()">解析并添加</button>
+                <button class="btn btn-secondary" onclick="clearInput()">清空</button>
+            </div>
+        </div>
+
+        <!-- 手动添加卡片 -->
+        <div class="card">
+            <h2>➕ 手动添加文件码</h2>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <input type="text" id="manualCode" placeholder="输入文件码" style="flex: 1; min-width: 200px;" />
+                <input type="text" id="manualNote" placeholder="备注信息（可选）" style="flex: 1; min-width: 200px;" />
+                <button class="btn btn-success" onclick="addManual()">添加</button>
+            </div>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索文件码或标签..." oninput="filterList()" />
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <!-- 过滤和设置栏 -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+            <select id="statusFilter" class="filter-select" onchange="filterList()">
+                <option value="all">全部状态</option>
+                <option value="unwatched">未观看</option>
+                <option value="watched">已观看</option>
+            </select>
+            
+            <select id="itemsPerPageSelect" class="filter-select" onchange="changeItemsPerPage()">
+                <option value="20">每页 20 条</option>
+                <option value="50" selected>每页 50 条</option>
+                <option value="100">每页 100 条</option>
+                <option value="200">每页 200 条</option>
+            </select>
+        </div>
+
+        <!-- 批量操作栏 -->
+        <div class="batch-actions" id="batchActions">
+            <span style="color: #9ca3af; flex: 1;">已选择 <span id="selectedCount">0</span> 项</span>
+            <button class="btn btn-success btn-small" onclick="batchMarkWatched(true)">标记已观看</button>
+            <button class="btn btn-secondary btn-small" onclick="batchMarkWatched(false)">标记未观看</button>
+            <button class="btn btn-danger btn-small" onclick="batchDelete()">批量删除</button>
+            <button class="btn btn-secondary btn-small" onclick="cancelSelection()">取消选择</button>
+        </div>
+
+        <!-- 文件码列表 -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                <h2 style="margin: 0;">📋 文件码列表</h2>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary btn-small" onclick="selectCurrentPage()" id="selectPageBtn" style="display: none;">选择当页</button>
+                    <button class="btn btn-secondary btn-small" onclick="selectAll()" id="selectAllBtn" style="display: none;">选择全部</button>
+                    <button class="btn btn-secondary btn-small" onclick="toggleSelectMode()">
+                        <span id="selectModeText">批量选择</span>
+                    </button>
+                </div>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 12px; color: #9ca3af;">加载中...</p>
+            </div>
+            <div id="fileList" class="file-list"></div>
+            
+            <!-- 分页器 -->
+            <div class="pagination" id="pagination" style="display: none;">
+                <div class="pagination-info">
+                    显示第 <span id="pageStart">1</span>-<span id="pageEnd">50</span> 条，共 <span id="totalItems">0</span> 条
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn btn-secondary btn-small" onclick="changePage(-1)" id="prevBtn">上一页</button>
+                    <span id="pageNumbers" class="page-numbers"></span>
+                    <button class="btn btn-secondary btn-small" onclick="changePage(1)" id="nextBtn">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <h3>⚠️ 确认删除</h3>
+            <p style="color: #9ca3af; margin-bottom: 20px;">确定要删除这个文件码吗？此操作无法撤销。</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知 -->
+    <div class="notification" id="notification"></div>
+
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="返回顶部">
+        ↑
+    </button>
+
+    <script>
+        let fileData = [];
+        let currentDeleteId = null;
+        let selectMode = false;
+        let selectedItems = new Set();
+        
+        // 分页变量
+        let currentPage = 1;
+        let itemsPerPage = 50;
+
+        // 登录功能
+        async function login() {
+            const password = document.getElementById('passwordInput').value;
+            if (!password) {
+                showNotification('请输入密码', 'error');
+                return;
+            }
+
+            try {
+                const hash = await sha256(password);
+                const response = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: hash })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    sessionStorage.setItem('session', result.session);
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('mainScreen').style.display = 'block';
+                    loadData();
+                } else {
+                    showNotification('密码错误', 'error');
+                }
+            } catch (error) {
+                showNotification('登录失败: ' + error.message, 'error');
+            }
+        }
+
+        // SHA-256 哈希函数
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 检查登录状态
+        function checkSession() {
+            const session = sessionStorage.getItem('session');
+            if (session) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainScreen').style.display = 'block';
+                loadData();
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            sessionStorage.removeItem('session');
+            location.reload();
+        }
+
+        // 加载数据
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            try {
+                const session = sessionStorage.getItem('session');
+                const response = await fetch('/api/data', {
+                    headers: { 'X-Session': session }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                const result = await response.json();
+                fileData = result.data || [];
+                renderList();
+            } catch (error) {
+                showNotification('加载数据失败: ' + error.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 保存数据
+        async function saveData() {
+            try {
+                const session = sessionStorage.getItem('session');
+                const response = await fetch('/api/data', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Session': session
+                    },
+                    body: JSON.stringify({ data: fileData })
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return false;
+                }
+
+                const result = await response.json();
+                return result.success;
+            } catch (error) {
+                showNotification('保存失败: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // 解析文本
+        function parseText() {
+            const text = document.getElementById('inputText').value;
+            
+            if (!text.trim()) {
+                showNotification('请输入要解析的文本', 'error');
+                return;
+            }
+
+            // 支持多种文件码格式的综合正则
+            const codePattern = /@filepan_bot:[a-zA-Z0-9_-]+|showfile[ls]bot_[a-zA-Z0-9_-]+|[VPD]_datapanbot_[a-zA-Z0-9_-]+|[a-zA-Z0-9]{10,}=_(?:grp|mda)|(?:vi|pk)_[a-zA-Z0-9_-]+|[vpdVPD]_[a-zA-Z0-9_-]{3,}/g;
+            
+            let newCount = 0;
+            const foundCodes = new Set();
+            
+            // 按行处理
+            const lines = text.split('\n');
+            
+            lines.forEach((line, lineIndex) => {
+                // 跳过说明性文本行（必须包含完整的关键词组合，而不是单个字）
+                if (line.match(/解码支持|开头老代码|结尾.*格式|已死.*bot/i) || 
+                    (line.includes('开头') && line.includes('代码')) ||
+                    (line.includes('结尾') && !line.match(/@filepan_bot|showfile/))) {
+                    return;
+                }
+                
+                // 跳过纯数字序号行（包含emoji数字）
+                if (line.match(/^[0-9①-⑩️⃣\s]+[:：]?\s*$/)) {
+                    return;
+                }
+                
+                // 找出该行所有文件码及其位置
+                const matches = Array.from(line.matchAll(codePattern));
+                
+                if (matches.length === 0) return;
+                
+                matches.forEach((match, index) => {
+                    const code = match[0].trim();
+                    
+                    // 跳过已存在的文件码
+                    if (fileData.some(item => item.code === code)) {
+                        return;
+                    }
+                    
+                    if (foundCodes.has(code)) {
+                        return;
+                    }
+                    
+                    foundCodes.add(code);
+                    
+                    // === 智能提取备注 ===
+                    let note = '';
+                    
+                    // 1. 提取文件码前面的内容（可能包含标签和描述）
+                    const beforeText = line.substring(0, match.index).trim();
+                    
+                    // 2. 提取文件码后面的内容（到下一个文件码或行尾）
+                    let afterStart = match.index + code.length;
+                    let afterEnd = line.length;
+                    
+                    // 如果后面还有文件码，只取到下一个文件码之前
+                    if (index < matches.length - 1) {
+                        // 找到下一个文件码的起始位置
+                        const nextMatch = matches[index + 1];
+                        afterEnd = nextMatch.index;
+                    }
+                    
+                    let afterText = line.substring(afterStart, afterEnd).trim();
+                    
+                    // === 策略：标签在前，关联到紧跟的文件码 ===
+                    
+                    // 提取前面最近的标签和描述
+                    // 如果前面有文件码，则从上一个文件码后开始提取
+                    let relevantBefore = beforeText;
+                    if (index > 0) {
+                        const prevMatch = matches[index - 1];
+                        const prevEnd = prevMatch.index + prevMatch[0].length;
+                        relevantBefore = line.substring(prevEnd, match.index).trim();
+                    }
+                    
+                    // 提取标签（#开头）
+                    const tags = relevantBefore.match(/#[^\s#]+/g) || [];
+                    
+                    // 提取普通描述文字（移除标签后的内容）
+                    let description = relevantBefore.replace(/#[^\s#]+/g, '').trim();
+                    
+                    // 如果前面没有描述，看看后面有没有
+                    if (!description && afterText) {
+                        description = afterText;
+                    }
+                    
+                    // === 清理描述文字 ===
+                    description = description
+                        .replace(/您的文件码已生成[，,、。.]*/g, '')
+                        .replace(/点击复制[：:]*/g, '')
+                        .replace(/通用解码器[：:]*[^\s]*/g, '')
+                        .replace(/ShowFilesBot/gi, '')
+                        .replace(/内容[：:]/g, '')
+                        // 移除所有文件码（使用与匹配相同的模式）
+                        .replace(/@filepan_bot:[a-zA-Z0-9_-]+/g, '')
+                        .replace(/showfile[ls]bot_[a-zA-Z0-9_-]+/gi, '')
+                        .replace(/[VPD]_datapanbot_[a-zA-Z0-9_-]+/g, '')
+                        .replace(/[a-zA-Z0-9]{10,}=_(?:grp|mda)/g, '')
+                        .replace(/(?:vi|pk)_[a-zA-Z0-9_-]+/g, '')
+                        .replace(/[vpdVPD]_[a-zA-Z0-9_-]{3,}/g, '')
+                        .replace(/\s+/g, ' ')
+                        .replace(/^[,，、：:\s]+|[,，、：:\s]+$/g, '')
+                        .trim();
+                    
+                    // === 组合最终备注 ===
+                    const parts = [];
+                    
+                    if (tags.length > 0) {
+                        parts.push(tags.join(' '));
+                    }
+                    
+                    if (description) {
+                        parts.push(description);
+                    }
+                    
+                    note = parts.join(' ')
+                        .replace(/\s+/g, ' ')
+                        .substring(0, 200)
+                        .trim();
+                    
+                    // 添加到数据
+                    fileData.push({
+                        id: Date.now() + Math.random(),
+                        code: code,
+                        note: note,
+                        watched: false,
+                        createdAt: new Date().toISOString()
+                    });
+                    newCount++;
+                });
+            });
+
+            if (newCount > 0) {
+                saveData().then(success => {
+                    if (success) {
+                        showNotification(`成功添加 ${newCount} 个文件码`);
+                        renderList();
+                        document.getElementById('inputText').value = '';
+                    }
+                });
+            } else {
+                showNotification('未找到新的文件码', 'error');
+            }
+        }
+
+        // 手动添加
+        async function addManual() {
+            const code = document.getElementById('manualCode').value.trim();
+            const note = document.getElementById('manualNote').value.trim();
+
+            if (!code) {
+                showNotification('请输入文件码', 'error');
+                return;
+            }
+
+            if (fileData.some(item => item.code === code)) {
+                showNotification('该文件码已存在', 'error');
+                return;
+            }
+
+            fileData.push({
+                id: Date.now() + Math.random(),
+                code: code,
+                note: note,
+                watched: false,
+                createdAt: new Date().toISOString()
+            });
+
+            const success = await saveData();
+            if (success) {
+                showNotification('添加成功');
+                renderList();
+                document.getElementById('manualCode').value = '';
+                document.getElementById('manualNote').value = '';
+            }
+        }
+
+        // 渲染列表
+        function renderList() {
+            const listContainer = document.getElementById('fileList');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filteredData = fileData;
+            
+            // 搜索过滤
+            if (searchTerm) {
+                filteredData = filteredData.filter(item => 
+                    item.code.toLowerCase().includes(searchTerm) ||
+                    item.note.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // 状态过滤
+            if (statusFilter === 'watched') {
+                filteredData = filteredData.filter(item => item.watched === true);
+            } else if (statusFilter === 'unwatched') {
+                filteredData = filteredData.filter(item => item.watched !== true);
+            }
+
+            // 更新统计
+            document.getElementById('totalCount').textContent = fileData.length;
+            document.getElementById('filteredCount').textContent = filteredData.length;
+
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p>暂无文件码</p>
+                    </div>
+                `;
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            // 分页逻辑
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            
+            // 确保当前页不超出范围
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+            if (currentPage < 1) {
+                currentPage = 1;
+            }
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            // 渲染当前页数据
+            listContainer.innerHTML = pageData.map(item => `
+                <div class="file-item" id="item-${item.id}">
+                    ${selectMode ? `<input type="checkbox" class="checkbox" onchange="toggleSelect('${item.id}')" ${selectedItems.has(item.id) ? 'checked' : ''}>` : ''}
+                    <div class="file-code">
+                        ${escapeHtml(item.code)}
+                        <span class="watched-badge ${item.watched ? 'watched' : 'unwatched'}">
+                            ${item.watched ? '✓ 已观看' : '✕ 未观看'}
+                        </span>
+                    </div>
+                    <div class="file-note" id="note-${item.id}">
+                        <span id="note-text-${item.id}">${escapeHtml(item.note) || '<span style="color: #6b7280;">无备注</span>'}</span>
+                        <input type="text" id="note-input-${item.id}" value="${escapeHtml(item.note)}" style="display: none;" />
+                    </div>
+                    <div class="file-actions">
+                        <button class="btn ${item.watched ? 'btn-secondary' : 'btn-success'} btn-small" onclick="toggleWatched('${item.id}')" title="切换观看状态">
+                            ${item.watched ? '标记未看' : '标记已看'}
+                        </button>
+                        <button class="btn btn-secondary btn-small" id="edit-btn-${item.id}" onclick="editNote('${item.id}')">编辑</button>
+                        <button class="btn btn-success btn-small" id="save-btn-${item.id}" onclick="saveNote('${item.id}')" style="display: none;">保存</button>
+                        <button class="btn btn-primary btn-small" onclick="copyCode('${item.code}')">复制</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteItem('${item.id}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 更新分页器
+            updatePagination(filteredData.length);
+        }
+
+        // 编辑备注
+        function editNote(id) {
+            const item = document.getElementById(`item-${id}`);
+            item.classList.add('editing');
+            document.getElementById(`note-text-${id}`).style.display = 'none';
+            document.getElementById(`note-input-${id}`).style.display = 'block';
+            document.getElementById(`edit-btn-${id}`).style.display = 'none';
+            document.getElementById(`save-btn-${id}`).style.display = 'inline-flex';
+        }
+
+        // 保存备注
+        async function saveNote(id) {
+            const newNote = document.getElementById(`note-input-${id}`).value;
+            const item = fileData.find(item => item.id == id);
+            
+            if (item) {
+                item.note = newNote;
+                const success = await saveData();
+                if (success) {
+                    showNotification('保存成功');
+                    renderList();
+                }
+            }
+        }
+
+        // 复制文件码
+        async function copyCode(code) {
+            try {
+                await navigator.clipboard.writeText(code);
+                showNotification('已复制到剪贴板');
+            } catch (error) {
+                // 降级方案：使用传统方法
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = code;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification('已复制到剪贴板');
+                } catch (err) {
+                    showNotification('复制失败，请手动复制', 'error');
+                }
+            }
+        }
+
+        // 删除项目
+        function deleteItem(id) {
+            currentDeleteId = id;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        // 确认删除
+        async function confirmDelete() {
+            if (currentDeleteId) {
+                fileData = fileData.filter(item => item.id != currentDeleteId);
+                const success = await saveData();
+                if (success) {
+                    showNotification('删除成功');
+                    renderList();
+                }
+            }
+            closeDeleteModal();
+        }
+
+        // 关闭删除模态框
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            currentDeleteId = null;
+        }
+
+        // 批量选择模式
+        function toggleSelectMode() {
+            selectMode = !selectMode;
+            selectedItems.clear();
+            document.getElementById('selectModeText').textContent = selectMode ? '退出选择' : '批量选择';
+            document.getElementById('batchActions').classList.toggle('show', selectMode);
+            document.getElementById('selectPageBtn').style.display = selectMode ? 'inline-flex' : 'none';
+            document.getElementById('selectAllBtn').style.display = selectMode ? 'inline-flex' : 'none';
+            renderList();
+        }
+
+        // 切换选择
+        function toggleSelect(id) {
+            if (selectedItems.has(id)) {
+                selectedItems.delete(id);
+            } else {
+                selectedItems.add(id);
+            }
+            document.getElementById('selectedCount').textContent = selectedItems.size;
+        }
+
+        // 批量删除
+        async function batchDelete() {
+            if (selectedItems.size === 0) {
+                showNotification('请先选择要删除的项目', 'error');
+                return;
+            }
+
+            if (confirm(`确定要删除选中的 ${selectedItems.size} 个文件码吗？`)) {
+                fileData = fileData.filter(item => !selectedItems.has(item.id));
+                const success = await saveData();
+                if (success) {
+                    showNotification(`成功删除 ${selectedItems.size} 个文件码`);
+                    selectedItems.clear();
+                    toggleSelectMode();
+                    renderList();
+                }
+            }
+        }
+
+        // 取消选择
+        function cancelSelection() {
+            toggleSelectMode();
+        }
+
+        // 选择当前页所有项
+        function selectCurrentPage() {
+            const listContainer = document.getElementById('fileList');
+            const checkboxes = listContainer.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                const id = checkbox.getAttribute('onchange').match(/'([^']+)'/)[1];
+                selectedItems.add(id);
+                checkbox.checked = true;
+            });
+            document.getElementById('selectedCount').textContent = selectedItems.size;
+            showNotification(`已选择当前页 ${checkboxes.length} 项`);
+        }
+
+        // 选择全部（所有过滤后的结果）
+        function selectAll() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filteredData = fileData;
+            
+            if (searchTerm) {
+                filteredData = filteredData.filter(item => 
+                    item.code.toLowerCase().includes(searchTerm) ||
+                    item.note.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (statusFilter === 'watched') {
+                filteredData = filteredData.filter(item => item.watched === true);
+            } else if (statusFilter === 'unwatched') {
+                filteredData = filteredData.filter(item => item.watched !== true);
+            }
+            
+            filteredData.forEach(item => selectedItems.add(item.id));
+            document.getElementById('selectedCount').textContent = selectedItems.size;
+            showNotification(`已选择全部 ${filteredData.length} 项`);
+            renderList();
+        }
+
+        // 切换单个项目的观看状态
+        async function toggleWatched(id) {
+            const item = fileData.find(item => item.id == id);
+            if (item) {
+                item.watched = !item.watched;
+                const success = await saveData();
+                if (success) {
+                    showNotification(item.watched ? '已标记为已观看' : '已标记为未观看');
+                    renderList();
+                }
+            }
+        }
+
+        // 批量标记观看状态
+        async function batchMarkWatched(watched) {
+            if (selectedItems.size === 0) {
+                showNotification('请先选择要标记的项目', 'error');
+                return;
+            }
+
+            fileData.forEach(item => {
+                if (selectedItems.has(item.id)) {
+                    item.watched = watched;
+                }
+            });
+
+            const success = await saveData();
+            if (success) {
+                showNotification(`成功将 ${selectedItems.size} 个文件码标记为${watched ? '已观看' : '未观看'}`);
+                selectedItems.clear();
+                document.getElementById('selectedCount').textContent = 0;
+                renderList();
+            }
+        }
+
+        // 修改每页显示数量
+        function changeItemsPerPage() {
+            itemsPerPage = parseInt(document.getElementById('itemsPerPageSelect').value);
+            currentPage = 1; // 重置到第一页
+            renderList();
+        }
+
+        // 更新分页器
+        function updatePagination(totalItems) {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            // 少于等于每页数量时隐藏分页器
+            if (totalItems <= itemsPerPage) {
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            pagination.style.display = 'flex';
+            
+            // 更新信息
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
+            document.getElementById('pageStart').textContent = startIndex;
+            document.getElementById('pageEnd').textContent = endIndex;
+            document.getElementById('totalItems').textContent = totalItems;
+            
+            // 更新按钮状态
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+            
+            // 生成页码
+            const pageNumbers = document.getElementById('pageNumbers');
+            pageNumbers.innerHTML = '';
+            
+            // 计算要显示的页码范围
+            let pages = [];
+            
+            if (totalPages <= 7) {
+                // 总页数少于7页，全部显示
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // 总页数多于7页，显示部分页码
+                if (currentPage <= 3) {
+                    pages = [1, 2, 3, 4, '...', totalPages];
+                } else if (currentPage >= totalPages - 2) {
+                    pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                } else {
+                    pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+                }
+            }
+            
+            pages.forEach(page => {
+                if (page === '...') {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'page-number ellipsis';
+                    ellipsis.textContent = '...';
+                    pageNumbers.appendChild(ellipsis);
+                } else {
+                    const pageBtn = document.createElement('span');
+                    pageBtn.className = `page-number ${page === currentPage ? 'active' : ''}`;
+                    pageBtn.textContent = page;
+                    pageBtn.onclick = () => goToPage(page);
+                    pageNumbers.appendChild(pageBtn);
+                }
+            });
+        }
+
+        // 切换页码
+        function changePage(direction) {
+            currentPage += direction;
+            renderList();
+            // 滚动到列表顶部
+            document.getElementById('fileList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 跳转到指定页
+        function goToPage(page) {
+            currentPage = page;
+            renderList();
+            // 滚动到列表顶部
+            document.getElementById('fileList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 搜索过滤
+        function filterList() {
+            currentPage = 1; // 搜索时重置到第一页
+            renderList();
+        }
+
+        // 导出数据
+        function exportData() {
+            const dataStr = JSON.stringify(fileData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `filecodes_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('数据已导出');
+        }
+
+        // 清空输入
+        function clearInput() {
+            document.getElementById('inputText').value = '';
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 返回顶部
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // 监听滚动，显示/隐藏返回顶部按钮
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            const backToTopBtn = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('show');
+            } else {
+                backToTopBtn.classList.remove('show');
+            }
+        }, { passive: true }); // passive提升滚动性能
+
+        // 页面加载时检查登录状态
+        checkSession();
+
+        // Enter 键登录
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

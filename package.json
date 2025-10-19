@@ -1,0 +1,22 @@
+{
+  "name": "file-codes-manager",
+  "version": "1.0.0",
+  "description": "一个部署在 Cloudflare Pages 的文件码管理系统",
+  "scripts": {
+    "dev": "wrangler pages dev ./ --kv FILE_CODES_KV",
+    "deploy": "wrangler pages deploy ./ --project-name=file-codes-manager",
+    "create-kv": "wrangler kv:namespace create FILE_CODES_KV"
+  },
+  "keywords": [
+    "cloudflare",
+    "pages",
+    "kv",
+    "file-manager"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
+

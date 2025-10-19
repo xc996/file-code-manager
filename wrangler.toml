@@ -1,0 +1,27 @@
+# Cloudflare Pages 配置文件
+
+name = "file-codes-manager"
+compatibility_date = "2024-01-01"
+
+# Pages 项目配置
+pages_build_output_dir = "./"
+
+# KV 命名空间绑定
+# 注意：你需要先在 Cloudflare Dashboard 创建 KV 命名空间
+# 然后在 Pages 项目设置中绑定该命名空间
+[[kv_namespaces]]
+binding = "FILE_CODES_KV"
+id = "your-kv-namespace-id-here"  # 生产环境 ID（部署时再设置）
+preview_id = "9800501f5ae74df8a2d5ea41bf69ea76"  # 本地开发用
+
+# 环境变量（用于开发）
+[vars]
+# PASSWORD_HASH 应该在 Cloudflare Pages 设置中配置，而不是在这里
+# 这里只是示例，生产环境请使用 Dashboard 设置
+
+# 开发环境配置
+[env.development]
+[[env.development.kv_namespaces]]
+binding = "FILE_CODES_KV"
+id = "your-dev-kv-namespace-id"  # 开发环境的 KV 命名空间 ID
+

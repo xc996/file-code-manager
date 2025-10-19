@@ -1,0 +1,12 @@
+# 本地开发环境变量示例
+# 复制此文件为 .dev.vars 并填入实际值
+
+# 密码哈希（SHA-256）
+# 默认密码 admin123 的哈希值
+PASSWORD_HASH=240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
+
+# 生成密码哈希：
+# Node.js: crypto.createHash('sha256').update('your-password').digest('hex')
+# Python: hashlib.sha256('your-password'.encode()).hexdigest()
+# 在线工具: https://emn178.github.io/online-tools/sha256.html
+
