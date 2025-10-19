@@ -35,22 +35,23 @@ function checkRateLimit(ip, limit = 100, window = 60000) {
     const key = ip;
     
     if (!rateLimits.has(key)) {
-        rateLimits.set(key, { count: 1, resetAt: now + window });
-        return true;
+        rateLimits.set(key, { count: 0, resetAt: now + window });
     }
     
     const record = rateLimits.get(key);
     
+    // 检查是否超过时间窗口
     if (now > record.resetAt) {
-        record.count = 1;
+        record.count = 0;
         record.resetAt = now + window;
-        return true;
     }
     
+    // 检查是否超过限制
     if (record.count >= limit) {
         return false;
     }
     
+    // 增加计数
     record.count++;
     return true;
 }
@@ -117,8 +118,8 @@ async function handleAuth(request, env) {
                         'unknown';
         
         // 防爆破检查 - 更严格的限制
-        const authRateLimit = checkRateLimit(`auth_${clientIP}`, 5, 300000); // 5次/5分钟
-        if (!authRateLimit.allowed) {
+        const authRateLimitAllowed = checkRateLimit(`auth_${clientIP}`, 5, 300000); // 5次/5分钟
+        if (!authRateLimitAllowed) {
             console.warn(`Auth rate limit exceeded for IP: ${clientIP}`);
             return jsonResponse({ 
                 success: false, 
