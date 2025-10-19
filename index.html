@@ -1037,7 +1037,7 @@
             }
 
             // 支持多种文件码格式的综合正则
-            const codePattern = /@filepan_bot:[a-zA-Z0-9_-]+|showfile[ls]bot_[a-zA-Z0-9_-]+|[VPD]_datapanbot_[a-zA-Z0-9_-]+|[a-zA-Z0-9]{10,}=_(?:grp|mda)|(?:vi|pk)_[a-zA-Z0-9_-]+|[vpdVPD]_[a-zA-Z0-9_-]{3,}/g;
+            const codePattern = /@filepan_bot:[a-zA-Z0-9_-]+|filepan_bot:[a-zA-Z0-9_-]+|showfile[ls]bot_[a-zA-Z0-9_-]+|[VPD]_datapanbot_[a-zA-Z0-9_-]+|[a-zA-Z0-9]{10,}=_(?:grp|mda)|(?:vi|pk)_[a-zA-Z0-9_-]+|[vpdVPD]_[a-zA-Z0-9_-]{3,}/g;
             
             let newCount = 0;
             const foundCodes = new Set();
