@@ -30,6 +30,81 @@ function verifySession(sessionId) {
 // Rate limiting - 简单的内存实现
 const rateLimits = new Map();
 
+// 加密/解密工具函数
+async function encryptData(data, key) {
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(JSON.stringify(data));
+    
+    // 生成随机 IV
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    // 导入密钥
+    const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(key),
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt']
+    );
+    
+    // 加密数据
+    const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        cryptoKey,
+        dataBuffer
+    );
+    
+    // 组合 IV + 加密数据
+    const result = new Uint8Array(iv.length + encrypted.byteLength);
+    result.set(iv, 0);
+    result.set(new Uint8Array(encrypted), iv.length);
+    
+    // 转换为 base64
+    return btoa(String.fromCharCode(...result));
+}
+
+async function decryptData(encryptedData, key) {
+    try {
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        
+        // 从 base64 解码
+        const data = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+        
+        // 分离 IV 和加密数据
+        const iv = data.slice(0, 12);
+        const encrypted = data.slice(12);
+        
+        // 导入密钥
+        const cryptoKey = await crypto.subtle.importKey(
+            'raw',
+            encoder.encode(key),
+            { name: 'AES-GCM' },
+            false,
+            ['decrypt']
+        );
+        
+        // 解密数据
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv },
+            cryptoKey,
+            encrypted
+        );
+        
+        // 解析 JSON
+        return JSON.parse(decoder.decode(decrypted));
+    } catch (error) {
+        console.error('Decryption error:', error);
+        return null;
+    }
+}
+
+// 生成加密密钥（基于密码哈希）
+function generateEncryptionKey(passwordHash) {
+    // 使用密码哈希的前32个字符作为密钥
+    return passwordHash.substring(0, 32).padEnd(32, '0');
+}
+
 function checkRateLimit(ip, limit = 100, window = 60000) {
     const now = Date.now();
     const key = ip;
@@ -187,8 +262,23 @@ async function handleGetData(env) {
             return jsonResponse({ data: [] });
         }
         
-        const dataStr = await kvNamespace.get('FILE_CODES_LIST');
-        const data = dataStr ? JSON.parse(dataStr) : [];
+        const encryptedData = await kvNamespace.get('FILE_CODES_LIST');
+        
+        if (!encryptedData) {
+            return jsonResponse({ data: [] });
+        }
+        
+        // 生成解密密钥
+        const passwordHash = env.PASSWORD_HASH || '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+        const encryptionKey = generateEncryptionKey(passwordHash);
+        
+        // 尝试解密数据
+        const data = await decryptData(encryptedData, encryptionKey);
+        
+        if (data === null) {
+            console.warn('Failed to decrypt data, returning empty array');
+            return jsonResponse({ data: [] });
+        }
         
         return jsonResponse({ data });
     } catch (error) {
@@ -213,6 +303,13 @@ async function handleSaveData(request, env) {
             return jsonResponse({ error: '数据过大' }, 400);
         }
         
+        // 生成加密密钥
+        const passwordHash = env.PASSWORD_HASH || '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+        const encryptionKey = generateEncryptionKey(passwordHash);
+        
+        // 加密数据
+        const encryptedData = await encryptData(data, encryptionKey);
+        
         // 保存到 KV
         const kvNamespace = env.FILE_CODES_KV;
         
@@ -220,7 +317,7 @@ async function handleSaveData(request, env) {
             return jsonResponse({ error: 'KV namespace 未配置' }, 500);
         }
         
-        await kvNamespace.put('FILE_CODES_LIST', dataStr);
+        await kvNamespace.put('FILE_CODES_LIST', encryptedData);
         
         return jsonResponse({ success: true });
     } catch (error) {
